@@ -1,5 +1,6 @@
 open Gfile
-    
+open Tools
+
 let () =
 
   (* Check the number of command-line arguments *)
@@ -28,8 +29,11 @@ let () =
   (* Open file *)
   let graph = from_file infile in
 
+  (*Test the func clone nodes*)
+  let out_graph = add_arc (gmap graph int_of_string) 4 5 123456789 in
+
   (* Rewrite the graph that has been read. *)
-  let () = write_file outfile graph in
+  let () = write_file outfile (gmap out_graph string_of_int) in
 
   ()
 

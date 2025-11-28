@@ -136,12 +136,43 @@ let from_file path =
 	8 -> 6 [label = "S(b)"];
 	8 -> 5 [label = "S(a)"];
 }*)
-let export gr = let init = "digraph finite_state_machine {
+let export path gr = 
+  
+  let ff = open_out path in 
+  fprintf ff "digraph finite_state_machine {
 	fontname=\"Helvetica,Arial,sans-serif\"
 	node [fontname=\"Helvetica,Arial,sans-serif\"]
 	edge [fontname=\"Helvetica,Arial,sans-serif\"]
 	rankdir=LR;
-	node [shape = doublecircle]; 0 3 4 8;
-	node [shape = circle];" in
+	node [shape = circle];";
+  
+  let _ = e_fold gr (fun count arc -> fprintf ff "%d -> %d [label = \"%s\"];\n" arc.src arc.tgt arc.lbl; count+1 ) 0 in
 
-  e_fold gr (fun arc str -> (string_of_int arc.src)+" -> "+(string_of_int arc.tgt) + " [" + + "]\n" ) init
+  fprintf ff "}\n";
+  close_out ff;
+  ()
+
+
+(* let export_chemin l path = 
+  
+  let ff = open_out path in 
+  fprintf ff "digraph finite_state_machine {
+	fontname=\"Helvetica,Arial,sans-serif\"
+	node [fontname=\"Helvetica,Arial,sans-serif\"]
+	edge [fontname=\"Helvetica,Arial,sans-serif\"]
+	rankdir=LR;
+	node [shape = circle];";
+  
+  let _ = List.fold_left (fun count arc -> fprintf ff "%d -> %d [label = \"%s\"];\n" arc.src arc.tgt arc.lbl; count+1 ) 0 l in
+
+  fprintf ff "}\n";
+  close_out ff;
+  () *)
+
+
+
+let export_chemin_2 l  = 
+  
+  let () = List.iter (fun arc -> printf "%d -> %d label = \"%s\"\n" arc.src arc.tgt (string_of_int arc.lbl) ) l in
+
+  ()

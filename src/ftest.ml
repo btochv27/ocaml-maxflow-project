@@ -46,6 +46,12 @@ let () =
   let out_graph = change_flow out_graph chemin (max_flow_chemin chemin) in
   let () = export outfile (gmap out_graph string_of_int) in *)
 
-  ford_fulkerson (gmap graph int_of_string) 0 5 "max_flow_out.txt"
+  let gr_og = (gmap graph int_of_string) in 
+  let gr_ford = ford_fulkerson gr_og  _source _sink in (
+    let () = export "max_flow_out.txt" (diff_graph gr_og gr_ford ) in Printf.printf "==========\ncé fini\n==========\n"
+
+
+  )
+
 
 

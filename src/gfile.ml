@@ -159,7 +159,7 @@ let export path gr =
   fprintf ff "digraph finite_state_machine {
 	fontname=\"Helvetica,Arial,sans-serif\"
 	node [fontname=\"Helvetica,Arial,sans-serif\"]
-	edge [fontname=\"Helvetica,Arial,sans-serif\"]
+	edge [fontname=\"Helvetica,Arial,sans-serif\"]number_of_instances_left
 	rankdir=LR;
 	node [shape = circle];";
   
@@ -178,48 +178,89 @@ let export_chemin_2 l  =
   ()
 
 
-let table_from_file path =
+
+let read_team_node graph line team hashTabIdToNode hashTabNodeToId=
+  try Scanf.sscanf line "t %s %d %d %d" (fun parsed_team _wins _losses _games_left -> (
+
+    if parsed_team != team then 
+      begin
+        let key = Hashtbl.length hashTabIdToNode in
+        Hashtbl.add hashTabIdToNode key parsed_team ;        
+        Hashtbl.add hashTabNodeToId parsed_team key;
+        new_node graph key
+      end
+    
+    else
+      graph
+  
+  )
+  )
+  with e ->
+    Printf.printf "Cannot read node in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
+    failwith "from_file"
+
+
+let read_game_node graph line team hashTabIdToNode hashTabNodeToId=
+
+try Scanf.sscanf line "t %s-%s %d" (fun t1 t2 _instances -> (
+
+    if t1 != team && t2 != team then
+      begin
+      let key = Hashtbl.length hashTabIdToNode in
+      Hashtbl.add hashTabIdToNode key (t1^"-"^t2) ;        
+      Hashtbl.add hashTabNodeToId (t1^"-"^t2) key;
+      new_node graph key
+      end
+    else
+      graph
+  
+  )
+  
+  )
+  
+  with e ->
+    Printf.printf "Cannot read node in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
+    failwith "from_file"
+
+
+
+let _graph_from_file path team =
+  let hashTabIdToNode = Hashtbl.create 100 in
+  let hashTabNodeToId = Hashtbl.create 100 in
 
   let infile = open_in path in
 
   (* Read all lines until end of file. *)
-  let rec loop table =
+  let rec loop graph =
     try
       let line = input_line infile in
 
       (* Remove leading and trailing spaces. *)
       let line = String.trim line in
 
-      let table2 =
+      let graph2 =
         (* Ignore empty lines *)
-        if line = "" then table
+        if line = "" then graph
 
         (* The first character of a line determines its content : n or e. *)
         else match line.[0] with
           
-          (*team_name;wins;losses;games_left *)
-          | 't' -> read_team table line
-          (*game team1;team2;number_of_instances_left*)
-          | 'g' -> read_game table line
+          (*team_name wins losses games_left *)
+          | 't' -> read_team_node graph line team hashTabIdToNode hashTabNodeToId
+          (*game team1_name-team2_name number_of_instances_left*)
+          | 'g' -> read_game_node graph line team hashTabIdToNode hashTabNodeToId
 
           (* It should be a comment, otherwise we complain. *)
-          | _ -> read_comment table line
+          | _ -> read_comment graph line
       in      
-      loop table2
+      loop graph2
 
-    with End_of_file -> table (* Done *)
+    with End_of_file -> graph (* Done *)
   in
 
   let final_graph = loop empty_graph in
   
   close_in infile ;
-  final_graph
+  (final_graph, hashTabIdToNode, hashTabNodeToId)
   
-
-
-let read_team
-
-
-let read_game
-
 

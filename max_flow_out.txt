@@ -3,12 +3,32 @@ digraph finite_state_machine {
 	node [fontname="Helvetica,Arial,sans-serif"]
 	edge [fontname="Helvetica,Arial,sans-serif"]
 	rankdir=LR;
-	node [shape = circle];4 -> 1 [label = "0/5"];
-4 -> 5 [label = "7/10"];
-2 -> 3 [label = "3/3"];
-2 -> 5 [label = "7/7"];
-3 -> 4 [label = "7/10"];
-0 -> 3 [label = "4/4"];
-0 -> 1 [label = "10/15"];
-1 -> 2 [label = "10/12"];
+	node [shape = circle];9 -> 1 [label = "0/524"];
+9 -> 3 [label = "0/1053"];
+9 -> 4 [label = "556/766"];
+7 -> 1 [label = "811/811"];
+7 -> 6 [label = "624/837"];
+7 -> 0 [label = "0/1435"];
+5 -> 1 [label = "0/879"];
+5 -> 4 [label = "0/1106"];
+5 -> 0 [label = "0/343"];
+5 -> 2 [label = "0/1054"];
+6 -> 1 [label = "191/954"];
+6 -> 3 [label = "433/433"];
+6 -> 7 [label = "0/837"];
+1 -> 9 [label = "123/524"];
+1 -> 7 [label = "0/811"];
+1 -> 6 [label = "0/954"];
+1 -> 5 [label = "879/879"];
+3 -> 9 [label = "433/1053"];
+3 -> 6 [label = "0/433"];
+4 -> 9 [label = "0/766"];
+4 -> 5 [label = "0/1106"];
+4 -> 2 [label = "556/1364"];
+2 -> 4 [label = "0/1364"];
+2 -> 5 [label = "556/1054"];
+0 -> 7 [label = "1435/1435"];
+0 -> 8 [label = "0/464"];
+0 -> 5 [label = "343/343"];
+8 -> 0 [label = "0/464"];
 }

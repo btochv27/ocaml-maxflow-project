@@ -176,3 +176,50 @@ let export_chemin_2 l  =
   let () = List.iter (fun arc -> printf "%d -> %d label = \"%s\"\n" arc.src arc.tgt (string_of_int arc.lbl) ) l in
 
   ()
+
+
+let table_from_file path =
+
+  let infile = open_in path in
+
+  (* Read all lines until end of file. *)
+  let rec loop table =
+    try
+      let line = input_line infile in
+
+      (* Remove leading and trailing spaces. *)
+      let line = String.trim line in
+
+      let table2 =
+        (* Ignore empty lines *)
+        if line = "" then table
+
+        (* The first character of a line determines its content : n or e. *)
+        else match line.[0] with
+          
+          (*team_name;wins;losses;games_left *)
+          | 't' -> read_team table line
+          (*game team1;team2;number_of_instances_left*)
+          | 'g' -> read_game table line
+
+          (* It should be a comment, otherwise we complain. *)
+          | _ -> read_comment table line
+      in      
+      loop table2
+
+    with End_of_file -> table (* Done *)
+  in
+
+  let final_graph = loop empty_graph in
+  
+  close_in infile ;
+  final_graph
+  
+
+
+let read_team
+
+
+let read_game
+
+

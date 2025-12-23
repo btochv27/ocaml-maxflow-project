@@ -1,6 +1,6 @@
 open Gfile
 open Tools
-open Max_flow
+(*open Max_flow*)
 
 let () =
 
@@ -28,7 +28,7 @@ let () =
   in
 
   (* Open file *)
-  let graph = from_file infile in
+  (*let graph = from_file infile in*)
 
   (*Test the func clone nodes*)
   (* let out_graph = add_arc (gmap graph int_of_string) 4 5 123456789 in
@@ -46,12 +46,23 @@ let () =
   let out_graph = change_flow out_graph chemin (max_flow_chemin chemin) in
   let () = export outfile (gmap out_graph string_of_int) in *)
 
-  let gr_og = (gmap graph int_of_string) in 
+  (*let gr_og = (gmap graph int_of_string) in 
   let gr_ford = ford_fulkerson gr_og  _source _sink in (
     let () = export "max_flow_out.txt" (diff_graph gr_og gr_ford ) in Printf.printf "==========\ncé fini\n==========\n"
 
 
-  )
+  )*)
+
+  (*CRICKET PROJECT*)
+  let (graph,_,_) = _graph_from_file infile "CSK" in
+  let graph_string = gmap graph string_of_int in
+
+  let () = export "outfile.txt" graph_string in Printf.printf "==========\ncé fini\n==========\n"
+
+
+  
+
+
 
 
 

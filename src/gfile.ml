@@ -180,14 +180,37 @@ let export_chemin_2 l  =
 
 
 let read_team_node graph line team hashTabIdToNode hashTabNodeToId=
+  (* Ici on créer les noeud des équipe qui ne sont pas de l'équipe choisis*)
   try Scanf.sscanf line "t %s %d %d %d" (fun parsed_team _wins _losses _games_left -> (
 
-    if parsed_team != team then 
+    if parsed_team <> team then 
       begin
         let key = Hashtbl.length hashTabIdToNode in
         Hashtbl.add hashTabIdToNode key parsed_team ;        
         Hashtbl.add hashTabNodeToId parsed_team key;
-        new_node graph key
+        (new_node graph key,None) 
+      end
+    else
+      (graph, Some(_wins + _games_left)) (*c'est l'équipe choisis*)
+    
+  
+  )
+  )
+  with e ->
+    Printf.printf "Cannot read team in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
+    failwith "from_file"
+
+let read_team_arc graph line team hashTabNodeToId max_win_possible=
+    (*Ici on doit créer les arcs des équipe jusqu'au puit, ils ont pour valeur le nombre maximum de victoire 
+    possible pour l'équipe choisi*)
+  try Scanf.sscanf line "t %s %d %d %d" (fun parsed_team _wins _losses _games_left -> (
+
+    if parsed_team <> team then 
+      begin
+        let id_team = Hashtbl.find hashTabNodeToId parsed_team in
+        let id_puit = Hashtbl.find hashTabNodeToId "P" in
+        let capacite = max_win_possible - _wins in
+        new_arc graph {src = id_team; tgt = id_puit; lbl = capacite}
       end
     
     else
@@ -196,15 +219,18 @@ let read_team_node graph line team hashTabIdToNode hashTabNodeToId=
   )
   )
   with e ->
-    Printf.printf "Cannot read node in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
+    Printf.printf "Cannot read team in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
     failwith "from_file"
 
 
+
+
 let read_game_node graph line team hashTabIdToNode hashTabNodeToId=
+  (* Ici on lit la ligne game pour créer un noeud de match entre deux équipe.
+  On ne créer que des noeud avec des match sans l'équipe utilisé*)
+try Scanf.sscanf line "g %s %s %d" (fun t1 t2 _instances -> (
 
-try Scanf.sscanf line "t %s-%s %d" (fun t1 t2 _instances -> (
-
-    if t1 != team && t2 != team then
+    if t1 <> team && t2 <> team then
       begin
       let key = Hashtbl.length hashTabIdToNode in
       Hashtbl.add hashTabIdToNode key (t1^"-"^t2) ;        
@@ -219,19 +245,84 @@ try Scanf.sscanf line "t %s-%s %d" (fun t1 t2 _instances -> (
   )
   
   with e ->
-    Printf.printf "Cannot read node in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
+    Printf.printf "Cannot game node in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
+    failwith "from_file"
+
+
+let read_game_arc graph line team hashTabNodeToId=
+    (*Cette fonction créer les arc entre le start et le match. Puis entre
+    le noeud match et les équipe correspondante.*)
+  try Scanf.sscanf line "g %s %s %d" (fun t1 t2 _instances -> (
+
+    if t1 <> team && t2 <> team then
+      begin
+        let id_game = Hashtbl.find hashTabNodeToId (t1^"-"^t2) in
+        let id_start = Hashtbl.find hashTabNodeToId "S" in
+        let id_t1 = Hashtbl.find hashTabNodeToId t1 in
+        let id_t2 = Hashtbl.find hashTabNodeToId t2 in
+        let capacite = _instances in
+        let graph1 = new_arc graph {src = id_start; tgt = id_game; lbl = capacite} in
+        let graph2 = new_arc graph1 {src = id_game; tgt = id_t1; lbl = capacite} in
+        new_arc graph2 {src = id_game; tgt = id_t2; lbl = capacite}
+      end
+    else
+      graph
+  
+  )
+  
+  )
+  
+  with e ->
+    Printf.printf "Cannot game node in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
     failwith "from_file"
 
 
 
 let _graph_from_file path team =
+  (* /!\ On doit utilisé un fichier avec aucune redondence d'information, on ne doit pas avoir
+  deux ligne avec des information équivalente. C'est a dire KKR-MI 6 match restant et 
+  MI-KKR 6 match restant
+  
+  Cette fonction transforme un txt representant un tableau de score de cricket en graph permettant
+  de performé un algo. Il créer le graphe permettan de claculer la possibilité de victoire de 
+  la Team choisi.*)
   let hashTabIdToNode = Hashtbl.create 100 in
   let hashTabNodeToId = Hashtbl.create 100 in
 
   let infile = open_in path in
 
   (* Read all lines until end of file. *)
-  let rec loop graph =
+  let rec loop_node graph current_vic=
+    try
+      let line = input_line infile in
+
+      (* Remove leading and trailing spaces. *)
+      let line = String.trim line in
+
+      let (graph2,found_vic) =
+        (* Ignore empty lines *)
+        if line = "" then (graph,None)
+
+        (* The first character of a line determines its content : t or g. *)
+        else match line.[0] with
+          
+          (*team_name wins losses games_left *)
+          | 't' -> read_team_node graph line team hashTabIdToNode hashTabNodeToId
+          (*game team1_name team2_name number_of_instances_left*)
+          | 'g' -> (read_game_node graph line team hashTabIdToNode hashTabNodeToId,None)
+
+          (* It should be a comment, otherwise we complain. *)
+          | _ -> (graph,None)
+      in    
+      (* mise a jour du nombre de victoire possible *)
+      let new_nb_vic = match found_vic with Some v-> v | None -> current_vic in 
+      loop_node graph2 new_nb_vic
+
+    with End_of_file -> (graph,current_vic) (* Done *)
+  in
+
+  let rec loop_arc graph max_win_possible = 
+    (* Ici on a deja les noeud, on doit maintenant rajouter les arcs*)
     try
       let line = input_line infile in
 
@@ -242,23 +333,37 @@ let _graph_from_file path team =
         (* Ignore empty lines *)
         if line = "" then graph
 
-        (* The first character of a line determines its content : n or e. *)
+        (* The first character of a line determines its content : t or g. *)
         else match line.[0] with
           
           (*team_name wins losses games_left *)
-          | 't' -> read_team_node graph line team hashTabIdToNode hashTabNodeToId
-          (*game team1_name-team2_name number_of_instances_left*)
-          | 'g' -> read_game_node graph line team hashTabIdToNode hashTabNodeToId
+          | 't' -> read_team_arc graph line team hashTabNodeToId max_win_possible
+          (*game team1_name team2_name number_of_instances_left*)
+          | 'g' -> read_game_arc graph line team hashTabNodeToId
 
           (* It should be a comment, otherwise we complain. *)
           | _ -> read_comment graph line
       in      
-      loop graph2
+      loop_arc graph2 max_win_possible
 
     with End_of_file -> graph (* Done *)
   in
+  (*On ajoute les deux premiers point*)
+  let graph_ini = empty_graph in
+  Hashtbl.add hashTabIdToNode 0 ("S") ;        
+  Hashtbl.add hashTabNodeToId ("S") 0;
+  let graph_ini1 = new_node graph_ini 0 in
 
-  let final_graph = loop empty_graph in
+  Hashtbl.add hashTabIdToNode 1 ("P") ;        
+  Hashtbl.add hashTabNodeToId ("P") 1;
+  let graph_ini2 = new_node graph_ini1 1 in
+
+  let (graph_after_node,nb_vic_possible) = loop_node graph_ini2 (-1) in
+
+  (* REBOBINER LE FICHIER *)
+  seek_in infile 0;
+
+  let final_graph = loop_arc graph_after_node nb_vic_possible in
   
   close_in infile ;
   (final_graph, hashTabIdToNode, hashTabNodeToId)

@@ -2,7 +2,7 @@
 
 src?=0
 dst?=5
-graph?=graph.txt
+graph?=input_cricket.txt
 
 all: build
 

@@ -1,0 +1,12 @@
+%Fichier qui représente le tableau présent sur le site de cricket%
+t MI 83 71 8
+t CSK 80 79 3
+t KKR 78 78 6
+t DC 77 82 3
+
+g MI CSK 1
+g MI KKR 6
+g MI DC 1
+g CSK KKR 0
+g CSK DC 2
+g KKR DC 0

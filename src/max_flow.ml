@@ -116,21 +116,63 @@ let ford_fulkerson gr pt_dep pt_arr =
   in inner gr gr pt_dep pt_arr 0
 
 
+
+(*même graphe que diff_graph mais sans les /<capacité> dans les labels*)
+let diff_graph_int gr_og gr_ford = 
+  let gr_out = clone_nodes gr_og in
+
+  e_fold gr_og (fun gr a -> (
+    match find_arc gr_ford a.tgt a.src with
+    | None -> new_arc gr {src=a.src; tgt=a.tgt; lbl=0}
+    | Some n_plus_x ->( (*si un arc existe dans l'autre sens aussi dans le graph OG*)
+
+      match find_arc gr_og a.tgt a.src with
+      | None -> (
+        (*sinon*)
+        new_arc gr {src=a.src; tgt=a.tgt; lbl=n_plus_x.lbl} 
+      )
+      | Some arc_oppose -> (
+        (*sens 2 *)
+        if n_plus_x.lbl > arc_oppose.lbl then (
+          new_arc gr {src=arc_oppose.src; tgt=arc_oppose.tgt; lbl=0} )
+          else (
+              (*sens 1*)
+              new_arc gr {src=arc_oppose.src; tgt=arc_oppose.tgt; lbl=(arc_oppose.lbl-n_plus_x.lbl)} )
+            
+            )
+      )
+
+      
+      )
+    )  
+    
+     gr_out
+  
+(* Dans notre problème de cricket,
+ si une équipe ne peut pas gagner alors le graph aura tous les arcs de sortie 
+ du noeud source qui ne sont pas saturés
+( les arcs sortants vers le puit n'avaient pas assez de capacité => pas assez de marge de points pour l'équipe )
+ *)
+let is_source_saturated gr_og out_of_fulkerson = 
+  let gr = diff_graph_int gr_og out_of_fulkerson in
+  (*somme des capacités source originales*)
+  let source_sum = List.fold_left (fun i arc -> i+arc.lbl) 0 (out_arcs gr_og 0) in
+  (* max flow à la fin de l'algo*)
+  let sink_sum = e_fold gr (fun i in_arc -> if in_arc.tgt = 1 then i+in_arc.lbl else i ) 0 in 
+  Printf.printf "\t(somme des capacités source) %d == %d (flow vers le puit) ?\n" sink_sum source_sum;
+  sink_sum == source_sum
+
 (*
 
 Pour tester si l’équipe z peut encore finir première, on construit un graphe de flux ainsi :
 
 On imagine que z gagne tous ses matchs restants — elle aura donc un nombre maximal possible de victoires = w_z + r_z. 
-Medium
 
 On crée un noeud source s et un noeud puits t. 
-Medium
 
 Pour chaque match restant non impliquant z (c.-à-d entre deux autres équipes x et y), on crée un noeud “match”, relié à s avec une arête de capacité égale au nombre de fois qu’ils doivent encore s’affronter (r_{xy}). 
-Medium
 
 Depuis chaque “match-noeud”, on connecte deux arêtes vers les noeuds “équipe” (x et y), avec capacité infinie — ce qui modélise le fait que l’une ou l’autre des équipes gagnera le match. 
-Medium
 
 Enfin, on relie chaque “noeud équipe” x à t avec une arête de capacité (w_z + r_z − w_x), c’est-à-dire le nombre maximal de victoires restantes que x peut obtenir sans dépasser l’objectif de z.
 

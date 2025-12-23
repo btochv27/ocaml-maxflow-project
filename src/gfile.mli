@@ -44,3 +44,5 @@ val export_chemin_2: int arc list -> unit
 }*)
 
 val _graph_from_file : path -> string -> (int graph * (int, path) Hashtbl.t * (path, int) Hashtbl.t)
+val read_team_name : string -> string
+val _teams_from_file : path -> string list

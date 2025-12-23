@@ -1,6 +1,6 @@
 open Gfile
 open Tools
-(*open Max_flow*)
+open Max_flow
 
 let () =
 
@@ -54,15 +54,26 @@ let () =
   )*)
 
   (*CRICKET PROJECT*)
-  let (graph,_,_) = _graph_from_file infile "CSK" in
-  let graph_string = gmap graph string_of_int in
+  let teams = _teams_from_file infile in
 
-  let () = export "outfile.txt" graph_string in Printf.printf "==========\ncé fini\n==========\n"
+  if teams == [] then
+    Printf.printf "prout"
+  else
 
+  let rec  build_all_graphs teams =
+    match teams with
+      | [] -> []
+      | team::ts -> (
+        let (graph,_,_) =  _graph_from_file infile team in 
+          graph :: (build_all_graphs ts)
+        )
 
-  
+  in let graphs = build_all_graphs teams in
+  List.iter (fun t-> Printf.printf "TEAM : %s\n" t ) teams ;
 
+  let results_graph = List.map (fun gr -> ford_fulkerson gr 0 1) graphs in
 
+  List.iteri (fun i g -> let () = export ("outfile-graph-equipe-"^(string_of_int i)^".txt")  (gmap g string_of_int) in (Printf.printf "[+] Built graph for team %d\n" i)) graphs;
 
-
+  List.iteri (fun i gr -> if (is_source_saturated (List.nth graphs i) gr) then Printf.printf "L'équipe %s peut gagner \n" (List.nth teams i) else Printf.printf "L'équipe %s ne peut pas gagner\n" (List.nth teams i) ) results_graph
 

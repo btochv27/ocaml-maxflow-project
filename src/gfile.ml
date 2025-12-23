@@ -191,7 +191,7 @@ let read_team_node graph line team hashTabIdToNode hashTabNodeToId=
         (new_node graph key,None) 
       end
     else
-      (graph, Some(_wins + _games_left)) (*c'est l'équipe choisis*)
+      (graph, Some(_wins + _games_left)) (*c'est l'équipe choisie*)
     
   
   )
@@ -292,7 +292,7 @@ let _graph_from_file path team =
   let infile = open_in path in
 
   (* Read all lines until end of file. *)
-  let rec loop_node graph current_vic=
+  let rec loop_node graph current_vic =
     try
       let line = input_line infile in
 
@@ -369,3 +369,42 @@ let _graph_from_file path team =
   (final_graph, hashTabIdToNode, hashTabNodeToId)
   
 
+  let read_team_name line =
+    try Scanf.sscanf line "t %s %d %d %d" (fun parsed_team _ _ _ -> (
+      parsed_team  
+  )
+  )
+  with e ->
+    Printf.printf "Cannot read team in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
+    failwith "from_file"
+
+
+
+
+let _teams_from_file path  =
+
+  let infile = open_in path in
+
+  (* Read all lines until end of file. *)
+  let rec loop teams =
+    try
+      let line = input_line infile in
+
+      (* Remove leading and trailing spaces. *)
+      let line = String.trim line in
+
+      (* Ignore empty lines *)
+      if line = "" then loop teams
+
+      (* The first character of a line determines its content : t or g. *)
+      else match line.[0] with
+        
+        (*team_name wins losses games_left *)
+        | 't' -> loop ((read_team_name line)::teams)
+        (*game team1_name team2_name number_of_instances_left*)
+        (* It should be a comment, otherwise we complain. *)
+        | _ -> loop teams
+  
+    with End_of_file -> teams (* Done *)
+
+  in loop []

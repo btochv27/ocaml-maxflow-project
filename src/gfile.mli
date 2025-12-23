@@ -42,3 +42,5 @@ val export_chemin_2: int arc list -> unit
 	8 -> 6 [label = "S(b)"];
 	8 -> 5 [label = "S(a)"];
 }*)
+
+val _graph_from_file : path -> string -> (int graph * (int, path) Hashtbl.t * (path, int) Hashtbl.t)

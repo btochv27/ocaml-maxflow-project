@@ -60,8 +60,10 @@ let max_flow_chemin c = match c with
 let rec change_flow gr c m = 
   match c with 
   | [] -> gr
-  | x::xs ->( 
+  | x::xs ->(
+    (* soustrait le flow utilisé de la capacité de l'arc*)
     let gr1 = add_arc gr x.src x.tgt (-m) in 
+    (*rajoute le flow utilisé sur l'arc inverse ( et le créer s'il n'existe pas)*)
     let gr2 = add_arc gr1 x.tgt x.src m in
     change_flow gr2 xs m
   )
@@ -73,19 +75,27 @@ let diff_graph gr_og gr_ford =
   e_fold gr_og (fun gr a -> (
     match find_arc gr_ford a.tgt a.src with
     | None -> new_arc gr {src=a.src; tgt=a.tgt; lbl="0/"^(string_of_int a.lbl)}
-    | Some n_plus_x ->( (*si un arc existe dans l'autre sens aussi dans le graph OG*)
+    | Some n_plus_x ->( 
 
+      (*si un arc existe dans l'autre sens aussi dans le graph OG*)
       match find_arc gr_og a.tgt a.src with
       | None -> (
-        (*sinon*)
+        (*Non*)
         new_arc gr {src=a.src; tgt=a.tgt; lbl=(string_of_int n_plus_x.lbl)^"/"^(string_of_int a.lbl)} 
       )
+        (*Oui*)
       | Some arc_oppose -> (
-        (*sens 2 *)
+        (*sens 2, si l'arc de flow inverse produit par FF est plus grand que la capacité de l'arc inverse original, 
+        alors cela veut dire que l'on utilise un arc dans le sens 1.
+        on peut donc mettre le flow de l'arc opposé (qui existait déjà) à 0 car on ne s'en sert pas*)
         if n_plus_x.lbl > arc_oppose.lbl then (
           new_arc gr {src=arc_oppose.src; tgt=arc_oppose.tgt; lbl="0/"^(string_of_int arc_oppose.lbl)} )
           else (
-              (*sens 1*)
+              (*sinon, c'est l'arc inverse qui est utilisé et donc on peut soustraire la capacité utilisée
+              de la capacité de l'arc inverse original.
+              Dans ce cas n_plus_x est avec un x negatif car on a soustrait la capacitée utilisée de l'arc durant l'algo
+              donc la soustraction n - (n - x) = x est parfaite pour afficher le taux d'utilisation de l'arc (n est la capacité)
+              *)
               new_arc gr {src=arc_oppose.src; tgt=arc_oppose.tgt; lbl=(string_of_int (arc_oppose.lbl-n_plus_x.lbl) )^"/"^(string_of_int arc_oppose.lbl)} )
             
             )

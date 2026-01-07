@@ -75,5 +75,9 @@ let () =
 
   List.iteri (fun i g -> let () = export ("outfile-graph-equipe-"^(string_of_int i)^".txt")  (gmap g string_of_int) in (Printf.printf "[+] Built graph for team %d\n" i)) graphs;
 
-  List.iteri (fun i gr -> if (is_source_saturated (List.nth graphs i) gr) then Printf.printf "L'équipe %s peut gagner \n" (List.nth teams i) else Printf.printf "L'équipe %s ne peut pas gagner\n" (List.nth teams i) ) results_graph
+  let oc = open_out "outfile.txt" in
+
+  List.iteri (fun i gr -> if (is_source_saturated (List.nth graphs i) gr oc) then Printf.fprintf oc "L'équipe %s peut gagner \n" (List.nth teams i) else Printf.fprintf oc "L'équipe %s ne peut pas gagner\n" (List.nth teams i) ) results_graph;
+
+  close_out oc
 

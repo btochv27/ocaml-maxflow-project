@@ -163,13 +163,16 @@ let diff_graph_int gr_og gr_ford =
  du noeud source qui ne sont pas saturés
 ( les arcs sortants vers le puit n'avaient pas assez de capacité => pas assez de marge de points pour l'équipe )
  *)
-let is_source_saturated gr_og out_of_fulkerson = 
+let is_source_saturated gr_og out_of_fulkerson oc = 
   let gr = diff_graph_int gr_og out_of_fulkerson in
   (*somme des capacités source originales*)
   let source_sum = List.fold_left (fun i arc -> i+arc.lbl) 0 (out_arcs gr_og 0) in
   (* max flow à la fin de l'algo*)
   let sink_sum = e_fold gr (fun i in_arc -> if in_arc.tgt = 1 then i+in_arc.lbl else i ) 0 in 
-  Printf.printf "\t(somme des capacités source) %d == %d (flow vers le puit) ?\n" sink_sum source_sum;
+  Printf.printf "\t(flow vers le puit) %d == %d (somme des capacités source) ?\n" sink_sum source_sum;
+  
+  Printf.fprintf oc "\t(flow vers le puit) %d == %d (somme des capacités source) ?\n" sink_sum source_sum;
+  
   sink_sum == source_sum
 
 (*

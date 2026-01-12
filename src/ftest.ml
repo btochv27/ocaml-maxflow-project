@@ -57,7 +57,7 @@ let () =
   let teams = _teams_from_file infile in
 
   if teams == [] then
-    Printf.printf "prout"
+    Printf.printf "Aucune équipe n'a pu être extraite du fichier."
   else
 
   let rec  build_all_graphs teams =

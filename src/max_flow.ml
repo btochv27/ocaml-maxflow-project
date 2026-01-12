@@ -73,17 +73,21 @@ let diff_graph gr_og gr_ford =
   let gr_out = clone_nodes gr_og in
 
   e_fold gr_og (fun gr a -> (
+    (*on cherche un arc inverse dans le graphe de FF*)
     match find_arc gr_ford a.tgt a.src with
+    (*S'il n'y en a pas cela veut dire que l'on a pas utilisé le flot dans le sens 1*)
     | None -> new_arc gr {src=a.src; tgt=a.tgt; lbl="0/"^(string_of_int a.lbl)}
+
+    (*S'il y en a un, on doit déterminer s'il s'agit d'un arc de compensation de flot ou un arc d'origine*)
     | Some n_plus_x ->( 
 
       (*si un arc existe dans l'autre sens aussi dans le graph OG*)
       match find_arc gr_og a.tgt a.src with
       | None -> (
-        (*Non*)
+        (*Non -> l'arc inverse n'existe pas dans le graphe OG, il s'agissait d'un arc de compensation de flot*)
         new_arc gr {src=a.src; tgt=a.tgt; lbl=(string_of_int n_plus_x.lbl)^"/"^(string_of_int a.lbl)} 
       )
-        (*Oui*)
+        (*Oui -> on doit déterminer lequel des deux est utilisé pour faire passer le flot*)
       | Some arc_oppose -> (
         (*sens 2, si l'arc de flow inverse produit par FF est plus grand que la capacité de l'arc inverse original, 
         alors cela veut dire que l'on utilise un arc dans le sens 1.
@@ -169,9 +173,9 @@ let is_source_saturated gr_og out_of_fulkerson oc =
   let source_sum = List.fold_left (fun i arc -> i+arc.lbl) 0 (out_arcs gr_og 0) in
   (* max flow à la fin de l'algo*)
   let sink_sum = e_fold gr (fun i in_arc -> if in_arc.tgt = 1 then i+in_arc.lbl else i ) 0 in 
-  Printf.printf "\t(flow vers le puit) %d == %d (somme des capacités source) ?\n" sink_sum source_sum;
+  Printf.printf "\t(flot vers le puit) %d == %d (somme des capacités source) ?\n" sink_sum source_sum;
   
-  Printf.fprintf oc "\t(flow vers le puit) %d == %d (somme des capacités source) ?\n" sink_sum source_sum;
+  Printf.fprintf oc "\t(flot vers le puit) %d == %d (somme des capacités source) ?\n" sink_sum source_sum;
   
   sink_sum == source_sum
 
@@ -181,7 +185,7 @@ Pour tester si l’équipe z peut encore finir première, on construit un graphe
 
 On imagine que z gagne tous ses matchs restants — elle aura donc un nombre maximal possible de victoires = w_z + r_z. 
 
-On crée un noeud source s et un noeud puits t. 
+On crée un noeud source s et un noeud puit t. 
 
 Pour chaque match restant non impliquant z (c.-à-d entre deux autres équipes x et y), on crée un noeud “match”, relié à s avec une arête de capacité égale au nombre de fois qu’ils doivent encore s’affronter (r_{xy}). 
 

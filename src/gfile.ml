@@ -279,13 +279,13 @@ let read_game_arc graph line team hashTabNodeToId=
 
 
 let _graph_from_file path team =
-  (* /!\ On doit utilisé un fichier avec aucune redondence d'information, on ne doit pas avoir
+  (* /!\ On doit utiliser un fichier avec aucune redondence d'information, on ne doit pas avoir
   deux ligne avec des information équivalente. C'est a dire KKR-MI 6 match restant et 
   MI-KKR 6 match restant
   
-  Cette fonction transforme un txt representant un tableau de score de cricket en graph permettant
-  de performé un algo. Il créer le graphe permettan de claculer la possibilité de victoire de 
-  la Team choisi.*)
+  Cette fonction transforme un txt representant un tableau de score de cricket en graph 
+  d'entrée pour un algo. Il créer le graphe permettant de calculer la possibilité de victoire de 
+  l'équipe choisie.*)
   let hashTabIdToNode = Hashtbl.create 100 in
   let hashTabNodeToId = Hashtbl.create 100 in
 
@@ -368,7 +368,6 @@ let _graph_from_file path team =
   close_in infile ;
   (final_graph, hashTabIdToNode, hashTabNodeToId)
   
-
   let read_team_name line =
     try Scanf.sscanf line "t %s %d %d %d" (fun parsed_team _ _ _ -> (
       parsed_team  
